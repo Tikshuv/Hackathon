@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from psycopg2 import sql
 import requests
-# import json
+import json
 
 
 class Main:
@@ -17,7 +17,9 @@ class Main:
     def __init__(self):
         self.create_db()  # Create the database when the instance is initialized
         self.create_table_j()  # Create the table for jokes after the DB is created
-        self.create_table_uf()  # Create the table for useless facts after DB is created
+        self.create_table_uf()  # Create the table for useless facts after DB is created(probably could refactor
+        # somehow to use same func as for creating table for jokes but later
+        self.preferences()
 
     @classmethod
     def create_db(cls):
@@ -156,6 +158,25 @@ class Main:
         except psycopg2.OperationalError as e:
             print(f"Error: {e}")
 
+    @classmethod
+    def preferences(cls):
+        pref_p = 'preferences.json'
+        if not os.path.exists(pref_p):
+            choices = {'y': 5, 'n': -5, '': 0}
+            while True:
+                j_c = input("Do you like jokes?(leave empty if can't decide)\n\t(Y)es\tOR\t(N)o\n\t\t\t")
+                if j_c.lower() in choices.keys():
+                    break
+                print("Please, select only 'Y' or 'N'")
+            while True:
+                f_c = input("What about random facts, do you like them(leave empty if can't decide?\n\t(Y)es\t("
+                            "N)o\n\t\t\t")
+                if f_c.lower() in choices.keys():
+                    break
+                print("Please, select only 'Y' or 'N'")
+            preferences = {'jokes': 5+choices[j_c], 'facts': 5+choices[f_c]}
+            with open(pref_p, 'w') as pref:
+                json.dump(preferences, pref, indent=4)
 
 
 a = Main()
