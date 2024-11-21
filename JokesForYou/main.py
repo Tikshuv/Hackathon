@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from psycopg2 import sql
 import requests
-import json
+# import json
 
 
 class Main:
