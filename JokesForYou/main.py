@@ -1,182 +1,121 @@
-import psycopg2
-import os
-from dotenv import load_dotenv
-from psycopg2 import sql
 import requests
+
+from initialising import Initialise
 import json
+import random
+import psycopg2
 
 
-class Main:
-    load_dotenv(dotenv_path='config.env')
-    DB_NAME = 'Entertainment'
-    USER = os.getenv('DB_USERNAME')
-    PASSWORD = os.getenv('DB_PASSWORD')
-    HOST = os.getenv('DB_HOST')
-    PORT = os.getenv('DB_PORT')
-
+class JokesFY:
     def __init__(self):
-        self.create_db()  # Create the database when the instance is initialized
-        self.create_table_j()  # Create the table for jokes after the DB is created
-        self.create_table_uf()  # Create the table for useless facts after DB is created(probably could refactor
-        # somehow to use same func as for creating table for jokes but later
-        self.preferences()
+        self.jokes = Initialise()
 
-    @classmethod
-    def create_db(cls):
-        """Class method to create the database if it doesn't exist."""
-        try:
-            # Connect to server to create database
-            connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT
-            )
-            connection.autocommit = True  # Allow database creation
-            cursor = connection.cursor()
+    @staticmethod
+    def choice():  # getting user's choice
+        choices = ['J', 'F', 'A', 'Q']
+        while True:
 
-            # Check if the database exists
-            cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{cls.DB_NAME}'")
-            exists = cursor.fetchone()
+            choice = input(f'''Choose the kind of entertainment that you want
+                            \t(J)oke\t(F)act\t(A)ny\t(Q)uit\n\t\tYour choice: ''').strip().upper()
+            if choice in choices:
+                break
 
-            if not exists:
-                create_db_q = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(cls.DB_NAME))
-                cursor.execute(create_db_q)
-                print(f"Database '{cls.DB_NAME}' created successfully.")
+            print('Choose only from the proposed')
+        if choice != 'Q':
+            while True:
+                match choice:
+                    case 'J':
+                        choice = 'jokes'
+                        break
+                    case 'F':
+                        choice = 'facts'
+                        break
+                    case 'A':
+                        with open('preferences.json', 'r') as prefs:
+                            chances = json.load(prefs)
+                            choice = random.choices(
+                                list(chances.keys()), weights=list(chances.values()), k=1)[0][0].upper()
+                            # decisions = []
+                            # for key, value in chances.items():
+                            #     for step in range(value):
+                            #         decisions.append(key)
+                            # choice = random.choice(decisions)[0].upper()
+        return choice
+
+    def main(self):
+        while True:
+            choice = self.choice()
+            """Sending the response to the slack and getting feedback"""
+            if choice != 'Q':
+                slack = 'https://hooks.slack.com/services/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'
+
+                connect = psycopg2.connect(dbname=self.jokes.DB_NAME, user=self.jokes.USER, password=self.jokes.PASSWORD
+                                           , host=self.jokes.HOST, port=self.jokes.PORT)
+                cursor = connect.cursor()
+                resp_q = f'SELECT text, rating FROM {choice}'
+                cursor.execute(resp_q)
+                resp = cursor.fetchall()
+                texts = [text[0] for text in resp]
+                weights = [text[1] for text in resp]
+                resp = random.choices(texts, weights=weights, k=1)[0]
+                # print(resp)
+                payload = {"text": resp}
+                response = requests.post(slack, json=payload)
+                if response.status_code == 200:
+                    print('Check your slack channel')
+
+                    while True:  # Getting feedback upon successful message and changing rating in table
+                        fb = input("Did you like it?\n(Y)es\tIt's (O)k\t(N)o\n\t\tYour choice: ").strip().upper()
+                        if fb == 'Y':
+                            fb = 1
+                            break
+                        if fb == 'O':
+                            break
+                        if fb == 'N':
+                            fb = -1
+                            break
+                        print('Choose only from the suggested options')
+
+                    if fb == 1:
+                        fb_q = f'UPDATE {choice} SET rating = rating + %s WHERE text = %s AND rating < 10'
+                        cursor.execute(fb_q, (fb, resp))
+                    elif fb == -1:
+                        fb_q = f'UPDATE {choice} SET rating = rating + %s WHERE text = %s AND rating > 1'
+                        cursor.execute(fb_q, (fb, resp))
+                    connect.commit()
+                    cursor.close()
+                    connect.close()
+                else:
+                    print(f"Failed to send a joke: {response.status_code}, {response.text}")
             else:
-                print(f"Database '{cls.DB_NAME}' already exists.")
-            cursor.close()
-            connection.close()
-        except psycopg2.OperationalError as e:
-            print(f"Error: {e}")
-
-    @classmethod
-    def create_table_j(cls):
-        """Class method to create the jokes table if it doesn't exist."""
-        try:
-            # Connect to the database to create the table
-            connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT,
-                dbname=cls.DB_NAME
-            )
-            cursor = connection.cursor()
-
-            # Check if the table exists
-            cursor.execute("SELECT * FROM information_schema.tables WHERE table_name = 'jokes';")
-            exists = cursor.fetchone()
-
-            if not exists:
-                create_table_q = '''
-                       CREATE TABLE jokes(
-                           j_id SERIAL PRIMARY KEY,
-                           joke TEXT NOT NULL,
-                           rating SMALLINT NOT NULL DEFAULT 0
-                       )
-                   '''
-                cursor.execute(create_table_q)
-                print('Created table for jokes')
-
-                # Now to fill the table with jokes
-                jokes = set()
-                while len(jokes) < 50:
-                    response = requests.get(
-                        'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,'
-                        'political,racist,sexist,explicit&type=single&amount=10'
-                    )
-                    response = response.json().get('jokes')
-                    for re in response:
-                        jokes.add(re.get('joke'))
-
-                jokes_q = '''
-                       INSERT INTO jokes(joke)
-                       VALUES(%s)
-                   '''
-                for joke in jokes:
-                    cursor.execute(jokes_q, (joke,))
-                connection.commit()
-                print("Inserted jokes into the table.")
-
-            cursor.close()
-            connection.close()
-
-        except psycopg2.OperationalError as e:
-            print(f"Error: {e}")
-
-    @classmethod
-    def create_table_uf(cls):
-        """Class method to create the jokes table if it doesn't exist."""
-        try:
-            # Connect to the database to create the table
-            connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT,
-                dbname=cls.DB_NAME
-            )
-            cursor = connection.cursor()
-
-            # Check if the table exists
-            cursor.execute("SELECT * FROM information_schema.tables WHERE table_name = 'facts';")
-            exists = cursor.fetchone()
-
-            if not exists:
-                create_table_q = '''
-                       CREATE TABLE facts(
-                           f_id SERIAL PRIMARY KEY,
-                           fact TEXT NOT NULL,
-                           rating SMALLINT NOT NULL DEFAULT 0
-                       )
-                   '''
-                cursor.execute(create_table_q)
-                print('Created table for facts')
-
-                # Now to fill the table with jokes
-                facts = set()
-                while len(facts) < 25:
-                    response = requests.get(
-                        'https://corporatebs-generator.sameerkumar.website/'
-                    )
-                    response = response.json()
-                    facts.add(response.get('phrase'))
-
-                facts_q = '''
-                       INSERT INTO facts(fact)
-                       VALUES(%s)
-                   '''
-                for fact in facts:
-                    cursor.execute(facts_q, (fact,))
-                connection.commit()
-                print("Inserted facts into the table.")
-
-            cursor.close()
-            connection.close()
-
-        except psycopg2.OperationalError as e:
-            print(f"Error: {e}")
-
-    @classmethod
-    def preferences(cls):
-        pref_p = 'preferences.json'
-        if not os.path.exists(pref_p):
-            choices = {'y': 5, 'n': -5, '': 0}
-            while True:
-                j_c = input("Do you like jokes?(leave empty if can't decide)\n\t(Y)es\tOR\t(N)o\n\t\t\t")
-                if j_c.lower() in choices.keys():
-                    break
-                print("Please, select only 'Y' or 'N'")
-            while True:
-                f_c = input("What about random facts, do you like them(leave empty if can't decide?\n\t(Y)es\t("
-                            "N)o\n\t\t\t")
-                if f_c.lower() in choices.keys():
-                    break
-                print("Please, select only 'Y' or 'N'")
-            preferences = {'jokes': 5+choices[j_c], 'facts': 5+choices[f_c]}
-            with open(pref_p, 'w') as pref:
-                json.dump(preferences, pref, indent=4)
+                while True:
+                    choice = input('Do you wish to change your preferences?\n\t(Y)es\t(N)o\n\t\tYour choice: ')
+                    if choice.upper() == 'N':
+                        quit()
+                    elif choice.upper() == 'Y':
+                        with open('preferences.json', 'r') as prefs:
+                            e_prefs = json.load(prefs)
+                            for key in list(e_prefs.keys()):
+                                while True:
+                                    choice = input(f"Do you wish to change {key}?\n\t(Y)es\t(N)o")
+                                    if choice.upper() == 'Y':
+                                        while True:
+                                            change = input('Please select a number between 1 and 10: ')
+                                            if change.isdigit():
+                                                if 1 <= int(change) <= 10:
+                                                    e_prefs[key] = int(change)
+                                                break
+                                            print('Invalid input, try again')
+                                        break
+                                    if choice == 'N':
+                                        break
+                                    print('Invalid input, please choose only from offered options')
+                        with open('preferences.json', 'w') as prefs:
+                            json.dump(e_prefs, prefs, indent=4)
+                        print('Preferences were updated, see you next time')
+                        quit()
+                    print('Choose only from Q or Y')
 
 
-a = Main()
+main = JokesFY()
+main.main()
