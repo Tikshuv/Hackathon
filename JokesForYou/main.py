@@ -9,6 +9,8 @@ import psycopg2
 class JokesFY:
     def __init__(self):
         self.jokes = Initialise()
+        # for Slack you need to fetch your own webhook from slack api page
+        self.slack = 'https://hooks.slack.com/services/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'
 
     @staticmethod
     def choice():  # getting user's choice
@@ -46,7 +48,7 @@ class JokesFY:
             choice = self.choice()
             """Sending the response to the slack and getting feedback"""
             if choice != 'Q':
-                slack = 'https://hooks.slack.com/services/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'
+                slack = self.slack
 
                 connect = psycopg2.connect(dbname=self.jokes.db_name, user=self.jokes.uname, password=self.jokes.password
                                            , host=self.jokes.host, port=self.jokes.port)
