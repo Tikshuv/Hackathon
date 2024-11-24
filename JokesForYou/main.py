@@ -10,7 +10,7 @@ class JokesFY:
     def __init__(self):
         self.jokes = Initialise()
         # for Slack you need to fetch your own webhook from slack api page
-        self.slack = 'https://hooks.slack.com/services/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'
+        self.slack = 'https://hooks.slack.com/services/T081ZF0K8NQ/B081TJR0BT9/k0q1bsKQ5tn4uR5TGCmUeY'
 
     @staticmethod
     def choice():  # getting user's choice
@@ -98,14 +98,15 @@ class JokesFY:
                             e_prefs = json.load(prefs)
                             for key in list(e_prefs.keys()):
                                 while True:
-                                    choice = input(f"Do you wish to change {key}?\n\t(Y)es\t(N)o")
-                                    if choice.upper() == 'Y':
+                                    choice = input(f"Do you wish to change {key}?\n\t(Y)es\t(N)o\n\t\t"
+                                                   f"Your choice: ").strip().upper()
+                                    if choice == 'Y':
                                         while True:
                                             change = input('Please select a number between 1 and 10: ')
                                             if change.isdigit():
                                                 if 1 <= int(change) <= 10:
                                                     e_prefs[key] = int(change)
-                                                break
+                                                    break
                                             print('Invalid input, try again')
                                         break
                                     if choice == 'N':

@@ -103,8 +103,8 @@ class Initialise:
                 jokes = set()
                 while len(jokes) < 50:
                     response = requests.get(
-                        'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,'
-                        'political,racist,sexist,explicit&type=single&amount=10'
+                        'https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,'
+                        'explicit&type=single&amount=10'
                     )
                     response = response.json().get('jokes')
                     for re in response:
@@ -176,6 +176,8 @@ class Initialise:
 
         except psycopg2.OperationalError as e:
             print(f"Error: {e}")
+            os.remove('configs.env')
+            quit()
 
     @classmethod
     def preferences(cls):
@@ -184,16 +186,17 @@ class Initialise:
         if not os.path.exists(pref_p):
             choices = {'y': 2, 'n': -2, '': 0}
             while True:
-                j_c = input("Do you like jokes?(leave empty if can't decide)\n\t(Y)es\tOR\t(N)o\n\t\t\t")
-                if j_c.lower() in choices.keys():
+                j_c = input(
+                    "Do you like jokes?(leave empty if can't decide)\n\t(Y)es\tOR\t(N)o\n\t\t\t").strip().lower()
+                if j_c in choices.keys():
                     break
                 print("Please, select only 'Y' or 'N'")
             while True:
-                f_c = input("What about random facts, do you like them(leave empty if can't decide?\n\t(Y)es\t("
-                            "N)o\n\t\t\t")
-                if f_c.lower() in choices.keys():
+                f_c = input("What about random facts, do you like them"
+                            "(leave empty if can't decide?\n\t(Y)es\t(N)o\n\t\t\t").strip().lower()
+                if f_c in choices.keys():
                     break
                 print("Please, select only 'Y' or 'N'")
-            preferences = {'jokes': 5+choices[j_c], 'facts': 5+choices[f_c]}
+            preferences = {'jokes': 5 + choices[j_c], 'facts': 5 + choices[f_c]}
             with open(pref_p, 'w') as pref:
                 json.dump(preferences, pref, indent=4)
