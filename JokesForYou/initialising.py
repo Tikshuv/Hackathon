@@ -7,14 +7,15 @@ import json
 
 
 class Initialise:
-    load_dotenv(dotenv_path='config.env')
-    DB_NAME = 'Entertainment'
-    USER = os.getenv('DB_USERNAME')
-    PASSWORD = os.getenv('DB_PASSWORD')
-    HOST = os.getenv('DB_HOST')
-    PORT = os.getenv('DB_PORT')
+
 
     def __init__(self):
+        self.configs()
+        self.db_name = os.getenv("DB_NAME")
+        self.uname = os.getenv('DB_USERNAME')
+        self.password = os.getenv('DB_PASSWORD')
+        self.host = os.getenv('DB_HOST')
+        self.port = os.getenv('DB_PORT')
         self.create_db()  # Create the database when the instance is initialized
         self.create_table_j()  # Create the table for jokes after the DB is created
         self.create_table_uf()  # Create the table for useless facts after DB is created(probably could refactor jokes
@@ -22,45 +23,65 @@ class Initialise:
         self.preferences()
 
     @classmethod
-    def create_db(cls):
+    def configs(cls):
+        conf_env = 'configs.env'
+        if not os.path.exists(conf_env):
+            host = input("Server's host: ")
+            port = input("Port: ")
+            s_name = input("Username: ")
+            password = input("Password for the server: ")
+            name = input("Desired name for database: ")
+            values = {
+                'DB_HOST': host,
+                'DB_USERNAME': f'{s_name}',
+                'DB_PASSWORD': f'{password}',
+                'DB_PORT': port,
+                'DB_NAME': name
+            }
+            with open(conf_env, 'w') as configs:
+                for key, value in values.items():
+                    configs.write(f"{key}={value}\n")
+            os.sync()
+        load_dotenv(dotenv_path='configs.env')
+
+    def create_db(self):
         """Class method to create the database if it doesn't exist."""
         try:
             # Connect to server to create database
             connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT
+                user=self.uname,
+                password=self.password,
+                host=self.host,
+                port=self.port
             )
             connection.autocommit = True  # Allow database creation
             cursor = connection.cursor()
 
             # Check if the database exists
-            cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{cls.DB_NAME}'")
+            cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{self.db_name}'")
             exists = cursor.fetchone()
 
             if not exists:
-                create_db_q = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(cls.DB_NAME))
+                create_db_q = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_name))
                 cursor.execute(create_db_q)
-                print(f"Database '{cls.DB_NAME}' created successfully.")
+                print(f"Database '{self.db_name}' created successfully.")
             else:
-                print(f"Database '{cls.DB_NAME}' already exists.")
+                print(f"Database '{self.db_name}' already exists.")
             cursor.close()
             connection.close()
         except psycopg2.OperationalError as e:
             print(f"Error: {e}")
 
-    @classmethod
-    def create_table_j(cls):
+    def create_table_j(self):
         """Class method to create the jokes table if it doesn't exist."""
         try:
             # Connect to the database to create the table
             connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT,
-                dbname=cls.DB_NAME
+                user=self.uname,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                dbname=self.db_name
             )
             cursor = connection.cursor()
 
@@ -105,17 +126,16 @@ class Initialise:
         except psycopg2.OperationalError as e:
             print(f"Error: {e}")
 
-    @classmethod
-    def create_table_uf(cls):
+    def create_table_uf(self):
         """Class method to create the jokes table if it doesn't exist."""
         try:
             # Connect to the database to create the table
             connection = psycopg2.connect(
-                user=cls.USER,
-                password=cls.PASSWORD,
-                host=cls.HOST,
-                port=cls.PORT,
-                dbname=cls.DB_NAME
+                user=self.uname,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                dbname=self.db_name
             )
             cursor = connection.cursor()
 
@@ -178,6 +198,3 @@ class Initialise:
             preferences = {'jokes': 5+choices[j_c], 'facts': 5+choices[f_c]}
             with open(pref_p, 'w') as pref:
                 json.dump(preferences, pref, indent=4)
-
-
-i = Initialise()

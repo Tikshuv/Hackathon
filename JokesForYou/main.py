@@ -14,9 +14,8 @@ class JokesFY:
     def choice():  # getting user's choice
         choices = ['J', 'F', 'A', 'Q']
         while True:
-
             choice = input(f'''Choose the kind of entertainment that you want
-                            \t(J)oke\t(F)act\t(A)ny\t(Q)uit\n\t\tYour choice: ''').strip().upper()
+    \t(J)oke\t(F)act\t(A)ny\t(Q)uit\n\t\tYour choice: ''').strip().upper()
             if choice in choices:
                 break
 
@@ -47,10 +46,10 @@ class JokesFY:
             choice = self.choice()
             """Sending the response to the slack and getting feedback"""
             if choice != 'Q':
-                slack = 'https://hooks.slack.com/services/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'
+                slack = 'https://hooks.slack.com/services/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'
 
-                connect = psycopg2.connect(dbname=self.jokes.DB_NAME, user=self.jokes.USER, password=self.jokes.PASSWORD
-                                           , host=self.jokes.HOST, port=self.jokes.PORT)
+                connect = psycopg2.connect(dbname=self.jokes.db_name, user=self.jokes.uname, password=self.jokes.password
+                                           , host=self.jokes.host, port=self.jokes.port)
                 cursor = connect.cursor()
                 resp_q = f'SELECT text, rating FROM {choice}'
                 cursor.execute(resp_q)
