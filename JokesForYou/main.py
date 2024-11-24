@@ -46,7 +46,7 @@ class JokesFY:
             choice = self.choice()
             """Sending the response to the slack and getting feedback"""
             if choice != 'Q':
-                slack = 'https://hooks.slack.com/services/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'
+                slack = 'https://hooks.slack.com/services/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'
 
                 connect = psycopg2.connect(dbname=self.jokes.db_name, user=self.jokes.uname, password=self.jokes.password
                                            , host=self.jokes.host, port=self.jokes.port)

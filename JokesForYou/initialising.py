@@ -8,7 +8,6 @@ import json
 
 class Initialise:
 
-
     def __init__(self):
         self.configs()
         self.db_name = os.getenv("DB_NAME")
