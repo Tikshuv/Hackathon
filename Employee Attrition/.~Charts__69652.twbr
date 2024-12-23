@@ -15,8 +15,9 @@
     <SheetIdentifierTracking />
     <_.fcp.VConnDownstreamExtractsWithWarnings.true...VConnDownstreamExtractsWithWarnings />
     <WindowsPersistSimpleIdentifiers />
+    <WorksheetBackgroundTransparency />
   </document-format-change-manifest>
-  <repository-location id='Charts_17349579959550' path='/workbooks' revision='1.0' />
+  <repository-location id='Charts_17349579959550' path='/workbooks' revision='1.1' />
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
     <preference name='ui.shelf.height' value='26' />
@@ -635,22 +636,25 @@
       <column caption='Employee Count' datatype='integer' name='[EmployeeCount]' role='measure' type='quantitative' />
       <column caption='Employee Number' datatype='integer' name='[EmployeeNumber]' role='dimension' type='ordinal' />
       <column caption='Environment Satisfaction' datatype='integer' name='[EnvironmentSatisfaction]' role='measure' type='quantitative' />
-      <column caption='Hourly Rate (bin)' datatype='integer' name='[Hourly Rate (bin)]' role='dimension' type='ordinal'>
+      <column aggregation='None' caption='Hourly Rate (bin)' datatype='integer' name='[Hourly Rate (bin)]' role='dimension' type='ordinal'>
         <calculation class='bin' decimals='-2' formula='[HourlyRate]' peg='0' size='4.87' />
       </column>
       <column aggregation='Sum' caption='Hourly Rate' datatype='integer' name='[HourlyRate]' role='dimension' type='ordinal' />
       <column caption='Job Involvement' datatype='integer' name='[JobInvolvement]' role='measure' type='quantitative' />
-      <column caption='Job Level' datatype='integer' name='[JobLevel]' role='measure' type='quantitative' />
+      <column aggregation='Sum' caption='Job Level' datatype='integer' name='[JobLevel]' role='dimension' type='ordinal' />
       <column caption='Job Role' datatype='string' name='[JobRole]' role='dimension' type='nominal' />
-      <column aggregation='Sum' caption='Job Satisfaction' datatype='integer' name='[JobSatisfaction]' role='dimension' type='ordinal' />
+      <column caption='Job Satisfaction' datatype='integer' name='[JobSatisfaction]' role='measure' type='quantitative' />
       <column caption='Marital Status' datatype='string' name='[MaritalStatus]' role='dimension' type='nominal' />
-      <column caption='Monthly Rates' datatype='integer' name='[Monthly Rate (bin)]' role='dimension' type='ordinal'>
+      <column aggregation='None' caption='Monthly Rates' datatype='integer' name='[Monthly Rate (bin)]' role='dimension' type='ordinal'>
         <calculation class='bin' decimals='2' formula='[MonthlyRate]' peg='0' size='711' />
       </column>
       <column caption='Monthly Income' datatype='integer' name='[MonthlyIncome]' role='measure' type='quantitative' />
       <column aggregation='Sum' caption='Monthly Rate' datatype='integer' name='[MonthlyRate]' role='dimension' type='ordinal' />
       <column caption='Num Companies Worked' datatype='integer' name='[NumCompaniesWorked]' role='measure' type='quantitative' />
       <column caption='Over Time' datatype='string' name='[OverTime]' role='dimension' type='nominal' />
+      <column datatype='integer' name='[Percent Salary Hike (bin)]' role='dimension' type='quantitative'>
+        <calculation class='bin' decimals='0' formula='[PercentSalaryHike]' peg='0' size='1.84' />
+      </column>
       <column caption='Percent Salary Hike' datatype='integer' name='[PercentSalaryHike]' role='measure' type='quantitative' />
       <column aggregation='Sum' caption='Performance Rating' datatype='integer' name='[PerformanceRating]' role='dimension' type='ordinal' />
       <column caption='Relationship Satisfaction' datatype='integer' name='[RelationshipSatisfaction]' role='measure' type='quantitative' />
@@ -1233,6 +1237,139 @@
     </datasource>
   </datasources>
   <worksheets>
+    <worksheet name='Distance From Home to Satisfaction'>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='WA_Fn-UseC_-HR-Employee-Attrition' name='federated.0lfmcv40m01p5m15gn4ju0yhucfs' />
+          </datasources>
+          <datasource-dependencies datasource='federated.0lfmcv40m01p5m15gn4ju0yhucfs'>
+            <column datatype='string' name='[Attrition]' role='dimension' type='nominal' />
+            <column caption='Distance From Home' datatype='integer' name='[DistanceFromHome]' role='measure' type='quantitative' />
+            <column caption='Job Role' datatype='string' name='[JobRole]' role='dimension' type='nominal' />
+            <column caption='Job Satisfaction' datatype='integer' name='[JobSatisfaction]' role='measure' type='quantitative' />
+            <column-instance column='[DistanceFromHome]' derivation='Avg' name='[avg:DistanceFromHome:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[JobSatisfaction]' derivation='Avg' name='[avg:JobSatisfaction:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Attrition]' derivation='None' name='[none:Attrition:nk]' pivot='key' type='nominal' />
+            <column-instance column='[JobRole]' derivation='None' name='[none:JobRole:nk]' pivot='key' type='nominal' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]'>
+            <groupfilter function='member' level='[none:Attrition:nk]' member='&quot;Yes&quot;' user:ui-domain='database' user:ui-enumeration='inclusive' user:ui-marker='enumerate' />
+          </filter>
+          <slices>
+            <column>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <encoding attr='color' field='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' palette='green_gold_10_0' type='interpolated' />
+            <encoding attr='size-bar' field='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:DistanceFromHome:qk]' field-type='quantitative' max-size='1' min-size='0.005' type='centersize' />
+          </style-rule>
+          <style-rule element='refline'>
+            <format attr='stroke-color' id='refline0' value='#000000' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <color column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:DistanceFromHome:qk]</rows>
+        <cols>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:JobRole:nk]</cols>
+      </table>
+      <simple-id uuid='{A0BF60D8-BAE2-4951-8CD7-59D0D39B9A31}' />
+    </worksheet>
+    <worksheet name='Job Satisfaction across Roles'>
+      <layout-options>
+        <caption>
+          <formatted-text>
+            <run bold='true' fontcolor='#000000'>As we can see, employees who are subjects of attrition and work in the following roles:</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>1. Research &amp; Development:</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>    a. Laboratory Technician</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>    b. Research Scientist</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>    c. Manager</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>2. Sales</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>    a. Sales Representative</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>    b. HR</run>
+            <run>Æ&#10;</run>
+            <run bold='true' fontcolor='#000000'>Show poor ratings of  satisfaction from their job which can be attributed to reason behind attrition</run>
+          </formatted-text>
+        </caption>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource caption='WA_Fn-UseC_-HR-Employee-Attrition' name='federated.0lfmcv40m01p5m15gn4ju0yhucfs' />
+          </datasources>
+          <datasource-dependencies datasource='federated.0lfmcv40m01p5m15gn4ju0yhucfs'>
+            <column datatype='string' name='[Attrition]' role='dimension' type='nominal' />
+            <column datatype='string' name='[Department]' role='dimension' type='nominal' />
+            <column caption='Job Role' datatype='string' name='[JobRole]' role='dimension' type='nominal' />
+            <column caption='Job Satisfaction' datatype='integer' name='[JobSatisfaction]' role='measure' type='quantitative' />
+            <column-instance column='[JobSatisfaction]' derivation='Avg' name='[avg:JobSatisfaction:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Attrition]' derivation='None' name='[none:Attrition:nk]' pivot='key' type='nominal' />
+            <column-instance column='[Department]' derivation='None' name='[none:Department:nk]' pivot='key' type='nominal' />
+            <column-instance column='[JobRole]' derivation='None' name='[none:JobRole:nk]' pivot='key' type='nominal' />
+          </datasource-dependencies>
+          <filter class='categorical' column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]'>
+            <groupfilter function='member' level='[none:Attrition:nk]' member='&quot;Yes&quot;' user:ui-domain='database' user:ui-enumeration='inclusive' user:ui-marker='enumerate' />
+          </filter>
+          <slices>
+            <column>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]</column>
+          </slices>
+          <aggregation value='true' />
+        </view>
+        <style>
+          <style-rule element='mark'>
+            <encoding attr='color' field='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' palette='green_blue_diverging_10_0' type='interpolated' />
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='on' />
+            </view>
+            <mark class='Automatic' />
+            <encodings>
+              <size column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' />
+              <color column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' />
+              <text column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Department:nk]' />
+              <text column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:JobRole:nk]' />
+            </encodings>
+            <style>
+              <style-rule element='mark'>
+                <format attr='mark-labels-show' value='true' />
+                <format attr='mark-labels-cull' value='true' />
+                <format attr='mark-labels-line-first' value='true' />
+                <format attr='mark-labels-line-last' value='true' />
+                <format attr='mark-labels-range-min' value='true' />
+                <format attr='mark-labels-range-max' value='true' />
+                <format attr='mark-labels-mode' value='all' />
+                <format attr='mark-labels-range-scope' value='pane' />
+                <format attr='mark-labels-range-field' value='' />
+              </style-rule>
+            </style>
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{A86B5153-4C0E-4AC9-B0AD-C712EB8E6DD3}' />
+    </worksheet>
     <worksheet name='Monthly Rate to Performance'>
       <table>
         <view>
@@ -1243,7 +1380,7 @@
             <column caption='Count' datatype='integer' name='[Calculation_4673258697856692224]' role='measure' type='quantitative'>
               <calculation class='tableau' formula='COUNT([__tableau_internal_object_id__].[WA_Fn-UseC_-HR-Employee-Attrition.csv_EB8323BB925642FA84944BB5BFE78CF2])' />
             </column>
-            <column caption='Monthly Rates' datatype='integer' name='[Monthly Rate (bin)]' role='dimension' type='ordinal'>
+            <column aggregation='None' caption='Monthly Rates' datatype='integer' name='[Monthly Rate (bin)]' role='dimension' type='ordinal'>
               <calculation class='bin' decimals='2' formula='[MonthlyRate]' peg='0' size='711' />
             </column>
             <column aggregation='Sum' caption='Monthly Rate' datatype='integer' name='[MonthlyRate]' role='dimension' type='ordinal' />
@@ -1322,7 +1459,7 @@ Additionally single employees are at even bigger risk of being affected by it</r
         </view>
         <style />
         <panes>
-          <pane id='2' selection-relaxation-option='selection-relaxation-allow'>
+          <pane id='3' selection-relaxation-option='selection-relaxation-allow'>
             <view>
               <breakdown value='auto' />
             </view>
@@ -1344,16 +1481,28 @@ Additionally single employees are at even bigger risk of being affected by it</r
       </table>
       <simple-id uuid='{D4665227-B333-441C-83E7-9576E81118D0}' />
     </worksheet>
-    <worksheet name='Sheet 4'>
+    <worksheet name='Promotions to Performance(Attrition)'>
       <table>
         <view>
           <datasources>
             <datasource caption='WA_Fn-UseC_-HR-Employee-Attrition' name='federated.0lfmcv40m01p5m15gn4ju0yhucfs' />
           </datasources>
           <datasource-dependencies datasource='federated.0lfmcv40m01p5m15gn4ju0yhucfs'>
-            <column datatype='string' name='[Gender]' role='dimension' type='nominal' />
-            <column-instance column='[Gender]' derivation='None' name='[none:Gender:nk]' pivot='key' type='nominal' />
+            <column datatype='string' name='[Attrition]' role='dimension' type='nominal' />
+            <column aggregation='Sum' caption='Performance Rating' datatype='integer' name='[PerformanceRating]' role='dimension' type='ordinal' />
+            <column caption='Total Working Years' datatype='integer' name='[TotalWorkingYears]' role='measure' type='quantitative' />
+            <column aggregation='Sum' caption='Years Since Last Promotion' datatype='integer' name='[YearsSinceLastPromotion]' role='dimension' type='ordinal' />
+            <column-instance column='[TotalWorkingYears]' derivation='Avg' name='[avg:TotalWorkingYears:qk]' pivot='key' type='quantitative' />
+            <column-instance column='[Attrition]' derivation='None' name='[none:Attrition:nk]' pivot='key' type='nominal' />
+            <column-instance column='[PerformanceRating]' derivation='None' name='[none:PerformanceRating:ok]' pivot='key' type='ordinal' />
+            <column-instance column='[YearsSinceLastPromotion]' derivation='None' name='[none:YearsSinceLastPromotion:ok]' pivot='key' type='ordinal' />
           </datasource-dependencies>
+          <filter class='categorical' column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]'>
+            <groupfilter function='member' level='[none:Attrition:nk]' member='&quot;Yes&quot;' user:ui-domain='database' user:ui-enumeration='inclusive' user:ui-marker='enumerate' />
+          </filter>
+          <slices>
+            <column>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]</column>
+          </slices>
           <aggregation value='true' />
         </view>
         <style />
@@ -1362,16 +1511,16 @@ Additionally single employees are at even bigger risk of being affected by it</r
             <view>
               <breakdown value='auto' />
             </view>
-            <mark class='Pie' />
+            <mark class='Automatic' />
             <encodings>
-              <color column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Gender:nk]' />
+              <color column='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:PerformanceRating:ok]' />
             </encodings>
           </pane>
         </panes>
-        <rows />
-        <cols />
+        <rows>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:TotalWorkingYears:qk]</rows>
+        <cols>[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:YearsSinceLastPromotion:ok]</cols>
       </table>
-      <simple-id uuid='{A86B5153-4C0E-4AC9-B0AD-C712EB8E6DD3}' />
+      <simple-id uuid='{CE752699-59BC-42C5-A2A8-7923BB9B2B30}' />
     </worksheet>
     <worksheet name='Total Years to Attrition'>
       <layout-options>
@@ -1423,14 +1572,92 @@ Additionally single employees are at even bigger risk of being affected by it</r
   <dashboards>
     <dashboard enable-sort-zone-taborder='true' name='Dashboard 1'>
       <style />
-      <size maxheight='860' maxwidth='650' minheight='560' minwidth='420' />
-      <zones />
+      <size maxheight='1000' maxwidth='1400' minheight='600' minwidth='1200' sizing-mode='range' />
+      <zones>
+        <zone h='100000' id='8' type-v2='layout-basic' w='100000' x='0' y='0'>
+          <zone h='98150' id='20' param='horz' type-v2='layout-flow' w='98798' x='601' y='925'>
+            <zone h='98150' id='14' param='horz' type-v2='layout-flow' w='86777' x='601' y='925'>
+              <zone h='98150' id='12' type-v2='layout-basic' w='86777' x='601' y='925' />
+            </zone>
+            <zone fixed-size='160' h='98150' id='19' is-fixed='true' param='vert' type-v2='layout-flow' w='12021' x='87378' y='925'>
+              <zone h='7515' id='21' name='Job Satisfaction across Roles' pane-specification-id='0' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' type-v2='color' w='12021' x='87378' y='925'>
+                <zone-style>
+                  <format attr='border-color' value='#000000' />
+                  <format attr='border-style' value='none' />
+                  <format attr='border-width' value='0' />
+                  <format attr='margin' value='4' />
+                </zone-style>
+              </zone>
+              <zone h='2543' id='25' name='OverTimeXMaritalStatus to Attrition' pane-specification-id='3' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]' type-v2='color' w='12021' x='87378' y='8440'>
+                <zone-style>
+                  <format attr='border-color' value='#000000' />
+                  <format attr='border-style' value='none' />
+                  <format attr='border-width' value='0' />
+                  <format attr='margin' value='4' />
+                </zone-style>
+              </zone>
+            </zone>
+          </zone>
+          <zone-style>
+            <format attr='border-color' value='#000000' />
+            <format attr='border-style' value='none' />
+            <format attr='border-width' value='0' />
+            <format attr='margin' value='8' />
+          </zone-style>
+        </zone>
+        <zone h='100000' id='7' param='vert' type-v2='layout-flow' w='100000' x='0' y='0'>
+          <zone h='100000' id='9' param='horz' type-v2='layout-flow' w='100000' x='0' y='0'>
+            <zone fixed-size='834' h='100000' id='16' is-fixed='true' param='vert' type-v2='layout-flow' w='62660' x='0' y='0'>
+              <zone fixed-size='59' forceUpdate='true' h='7746' id='17' is-fixed='true' type-v2='text' w='62660' x='0' y='0'>
+                <formatted-text>
+                  <run bold='true' fontcolor='#f0506e' fontname='gotham-rounded' fontsize='12' italic='true'>Exploring Employee Attrition and Performance in a Corporate Environment</run>
+                </formatted-text>
+                <zone-style>
+                  <format attr='border-color' value='#000000' />
+                  <format attr='border-style' value='none' />
+                  <format attr='border-width' value='0' />
+                  <format attr='margin' value='4' />
+                </zone-style>
+              </zone>
+              <zone h='92254' id='22' param='horz' type-v2='layout-flow' w='62660' x='0' y='7746'>
+                <zone h='92254' id='23' name='Distance From Home to Satisfaction' w='39520' x='0' y='7746'>
+                  <layout-cache cell-count-w='9' minheight='203' non-cell-size-w='52' type-h='scalable' type-w='cell' />
+                  <zone-style>
+                    <format attr='border-color' value='#000000' />
+                    <format attr='border-style' value='none' />
+                    <format attr='border-width' value='0' />
+                    <format attr='margin' value='4' />
+                  </zone-style>
+                </zone>
+                <zone h='92254' id='24' name='OverTimeXMaritalStatus to Attrition' w='23140' x='39520' y='7746'>
+                  <layout-cache type-h='fixed' type-w='fixed' />
+                  <zone-style>
+                    <format attr='border-color' value='#000000' />
+                    <format attr='border-style' value='none' />
+                    <format attr='border-width' value='0' />
+                    <format attr='margin' value='4' />
+                  </zone-style>
+                </zone>
+              </zone>
+            </zone>
+            <zone h='100000' id='18' name='Job Satisfaction across Roles' w='37340' x='62660' y='0'>
+              <layout-cache cell-count-w='1' type-h='cell' type-w='cell' />
+              <zone-style>
+                <format attr='border-color' value='#000000' />
+                <format attr='border-style' value='none' />
+                <format attr='border-width' value='0' />
+                <format attr='margin' value='4' />
+              </zone-style>
+            </zone>
+          </zone>
+        </zone>
+      </zones>
       <devicelayouts>
         <devicelayout auto-generated='true' name='Phone'>
           <size maxheight='700' minheight='700' sizing-mode='vscroll' />
           <zones>
-            <zone h='100000' id='2' type-v2='layout-basic' w='100000' x='0' y='0'>
-              <zone h='84000' id='1' param='vert' type-v2='layout-flow' w='84000' x='8000' y='8000' />
+            <zone h='100000' id='6' type-v2='layout-basic' w='100000' x='0' y='0'>
+              <zone h='98140' id='5' param='vert' type-v2='layout-flow' w='97538' x='1231' y='930' />
               <zone-style>
                 <format attr='border-color' value='#000000' />
                 <format attr='border-style' value='none' />
@@ -1467,7 +1694,7 @@ Additionally single employees are at even bigger risk of being affected by it</r
         </edge>
         <edge name='right'>
           <strip size='160'>
-            <card pane-specification-id='2' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]' type='color' />
+            <card pane-specification-id='3' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Attrition:nk]' type='color' />
           </strip>
         </edge>
         <edge name='bottom'>
@@ -1513,11 +1740,6 @@ Additionally single employees are at even bigger risk of being affected by it</r
         </edge>
       </cards>
       <viewpoint>
-        <current-page>
-          <multibucket>
-            <bucket>1</bucket>
-          </multibucket>
-        </current-page>
         <zoom type='fit-width' />
       </viewpoint>
       <simple-id uuid='{A72F356B-BDE6-4236-B139-963B5F5F36B0}' />
@@ -1553,7 +1775,7 @@ Additionally single employees are at even bigger risk of being affected by it</r
       </viewpoint>
       <simple-id uuid='{27995741-40FF-4941-9BF3-C2EEE15EDCE5}' />
     </window>
-    <window class='worksheet' maximized='true' name='Sheet 4'>
+    <window class='worksheet' name='Job Satisfaction across Roles'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -1575,15 +1797,93 @@ Additionally single employees are at even bigger risk of being affected by it</r
         </edge>
         <edge name='right'>
           <strip size='160'>
-            <card pane-specification-id='0' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:Gender:nk]' type='color' />
+            <card pane-specification-id='0' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' type='color' />
+          </strip>
+        </edge>
+        <edge name='bottom'>
+          <strip size='2147483647'>
+            <card type='caption' />
           </strip>
         </edge>
       </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+      </viewpoint>
       <simple-id uuid='{FE1B62C7-C09F-4FC5-ACD3-DDAD9FAA458A}' />
     </window>
-    <window class='dashboard' name='Dashboard 1'>
-      <viewpoints />
-      <active id='-1' />
+    <window class='worksheet' name='Distance From Home to Satisfaction'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+        <edge name='right'>
+          <strip size='160'>
+            <card pane-specification-id='0' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[avg:JobSatisfaction:qk]' type='color' />
+          </strip>
+        </edge>
+      </cards>
+      <viewpoint>
+        <zoom type='entire-view' />
+        <default-map-tool-selection tool='2' />
+      </viewpoint>
+      <simple-id uuid='{31D36480-88E4-46B4-9A22-D9E4979E0CC4}' />
+    </window>
+    <window class='worksheet' name='Promotions to Performance(Attrition)'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+        <edge name='right'>
+          <strip size='160'>
+            <card pane-specification-id='0' param='[federated.0lfmcv40m01p5m15gn4ju0yhucfs].[none:PerformanceRating:ok]' type='color' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{1F9C7052-C398-40D0-B60E-8C93C5FA54EC}' />
+    </window>
+    <window class='dashboard' maximized='true' name='Dashboard 1'>
+      <viewpoints>
+        <viewpoint name='Distance From Home to Satisfaction'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='Job Satisfaction across Roles'>
+          <zoom type='entire-view' />
+        </viewpoint>
+        <viewpoint name='OverTimeXMaritalStatus to Attrition'>
+          <zoom type='fit-height' />
+        </viewpoint>
+      </viewpoints>
+      <active id='24' />
       <simple-id uuid='{0B3E046A-EC3F-47C5-BC25-88398B9F8031}' />
     </window>
   </windows>
