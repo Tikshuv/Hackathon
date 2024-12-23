@@ -10,7 +10,7 @@ class JokesFY:
     def __init__(self):
         self.jokes = Initialise()
         # for Slack you need to fetch your own webhook from slack api page
-        self.slack = 'https://hooks.slack.com/services/T081ZF0K8NQ/B081TJR0BT9/k0q1bsKQ5tn4uR5TGCmUeY'
+        self.slack = 'https://hooks.slack.com/services/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'
 
     @staticmethod
     def choice():  # getting user's choice
